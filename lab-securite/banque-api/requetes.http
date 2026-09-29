@@ -1,0 +1,53 @@
+@base = http://localhost:8080
+
+### 1. Lister tous les comptes
+GET {{base}}/comptes
+
+### 2. Filtrer par type
+GET {{base}}/comptes?type=EPARGNE
+
+### 3. Lire un compte
+GET {{base}}/comptes/1
+
+### 4. Créer un compte
+POST {{base}}/comptes
+Content-Type: application/json
+
+{
+  "titulaire": "Alice Martin",
+  "type": "COURANT",
+  "proprietaire": "alice"
+}
+
+### 5. Requête invalide : 400
+POST {{base}}/comptes
+Content-Type: application/json
+
+{
+  "titulaire": "",
+  "type": "COURANT"
+}
+
+### 6. Virement du compte 1 vers le compte 3
+POST {{base}}/virements
+Content-Type: application/json
+
+{
+  "compteSource": 1,
+  "compteDestination": 3,
+  "montant": 100.00,
+  "libelle": "Remboursement dîner"
+}
+
+### 7. Virement trop élevé : 422
+POST {{base}}/virements
+Content-Type: application/json
+
+{
+  "compteSource": 3,
+  "compteDestination": 1,
+  "montant": 99999
+}
+
+### 8. Compte inconnu : 404
+GET {{base}}/comptes/999

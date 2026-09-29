@@ -1,0 +1,67 @@
+@base = http://localhost:8080
+
+### 1. Sans token : 401
+GET {{base}}/comptes
+
+### 2. Token d'Alice (tous les droits)
+# @name alice
+POST {{base}}/dev/token?sub=alice&scope=comptes:lire%20comptes:ecrire%20virements:creer
+
+@tokenAlice = {{alice.response.body.access_token}}
+
+### 3. Token de Bob (lecture seule)
+# @name bob
+POST {{base}}/dev/token?sub=bob&scope=comptes:lire
+
+@tokenBob = {{bob.response.body.access_token}}
+
+### 4. Alice liste ses comptes : 200, 2 comptes
+GET {{base}}/comptes
+Authorization: Bearer {{tokenAlice}}
+
+### 5. Bob lit le compte 1 d'Alice : 404 (BOLA corrigée)
+GET {{base}}/comptes/1
+Authorization: Bearer {{tokenBob}}
+
+### 6. Bob crée un compte sans le scope comptes:ecrire : 403
+POST {{base}}/comptes
+Authorization: Bearer {{tokenBob}}
+Content-Type: application/json
+
+{
+  "titulaire": "Bob Durand",
+  "type": "COURANT"
+}
+
+### 7. Alice crée un compte en se déclarant bob : 201, propriétaire alice
+POST {{base}}/comptes
+Authorization: Bearer {{tokenAlice}}
+Content-Type: application/json
+
+{
+  "titulaire": "Alice Martin",
+  "type": "COURANT",
+  "proprietaire": "bob"
+}
+
+### 8. Alice vire depuis le compte 3 de Bob : 404
+POST {{base}}/virements
+Authorization: Bearer {{tokenAlice}}
+Content-Type: application/json
+
+{
+  "compteSource": 3,
+  "compteDestination": 1,
+  "montant": 100
+}
+
+### 9. Alice vire vers Bob : 201
+POST {{base}}/virements
+Authorization: Bearer {{tokenAlice}}
+Content-Type: application/json
+
+{
+  "compteSource": 1,
+  "compteDestination": 3,
+  "montant": 100
+}

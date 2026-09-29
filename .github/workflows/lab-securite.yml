@@ -1,0 +1,23 @@
+name: Lab sécurité
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        projet: [lab-securite/banque-api, correction/lab-securite/banque-api]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Compiler et tester
+        working-directory: ${{ matrix.projet }}
+        run: mvn -B verify
